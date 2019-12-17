@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from "react-router-dom";
 import Routes from "./Routes.js";
 import { LinkContainer } from "react-router-bootstrap";
 import "./App.css";
@@ -15,24 +14,28 @@ import {
   UncontrolledDropdown,
   DropdownToggle,
   DropdownMenu,
-  DropdownItem,
-  NavbarText
+  DropdownItem
 } from 'reactstrap';
 
 const Example = (props) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggle = () => setIsOpen(!isOpen);
 
+  function handleLogout () {
+    setIsAuthenticated(true);
+  }
+
   return (
     <div className="App container">
       <Navbar color="light" light expand="md">
-        <NavbarBrand href="/"><Link to="/">Lionel Feliho</Link></NavbarBrand>
+        <NavbarBrand href="/">Lionel Feliho</NavbarBrand>
         <NavbarToggler onClick={toggle} />
         <Collapse isOpen={isOpen} navbar>
           <Nav className="mr-auto" navbar>
             <NavItem>
-              <NavLink href="www.linkedin.com/in/lionel-feliho-650437134/">Linkedin</NavLink>
+              <NavLink href="https://linkedin.com/in/lionel-feliho-650437134/">Linkedin</NavLink>
             </NavItem>
             <NavItem>
               <NavLink href="https://github.com/FELIHO/">GitHub</NavLink>
@@ -55,19 +58,22 @@ const Example = (props) => {
               </DropdownMenu>
             </UncontrolledDropdown>
           </Nav>
-          <Nav>
-            <LinkContainer to="/signup">
-              <NavItem className="NavItemSign" >Sign up &nbsp;</NavItem>
-            </LinkContainer>
-          </Nav>
+            {isAuthenticated ? <Nav><NavItem onClick={handleLogout}>Logout</NavItem></Nav>: <>
           <Nav>
             <LinkContainer to="/signin">
-              <NavItem className="NavItemSign">Sign in</NavItem>
+              <NavItem className="NavItemSign">Sign in &nbsp;</NavItem>
             </LinkContainer>
           </Nav>
+          <Nav>
+            <LinkContainer to="/signup">
+              <NavItem className="NavItemSign" >Sign up</NavItem>
+            </LinkContainer>
+          </Nav>
+
+          </>}
         </Collapse>
       </Navbar>
-      <Routes />
+      <Routes appProps={{ isAuthenticated, setIsAuthenticated }} />
     </div>
   );
 }

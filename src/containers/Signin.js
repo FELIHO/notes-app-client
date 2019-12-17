@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button, FormGroup, FormControl, ControlLabel } from "react-bootstrap";
+import { Auth } from "aws-amplify";
 import "./Signin.css";
 
 export default function Signin(props) {
@@ -10,8 +11,15 @@ export default function Signin(props) {
     return email.length > 0 && password.length > 0;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+
+    try {
+      await Auth.signIn(email, password);
+      props.setIsAuthenticated(true);
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
   return (
