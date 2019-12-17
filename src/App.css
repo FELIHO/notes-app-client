@@ -5,3 +5,8 @@
 .App .navbar-brand {
   font-weight: bold;
 }
+
+#NavItemSign {
+  margin-left: 10%;
+  color:red; 
+}
