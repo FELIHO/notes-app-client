@@ -5,6 +5,8 @@ import { PageHeader, ListGroup, ListGroupItem } from "react-bootstrap";
 import "./Home.css";
 
 export default class Home extends Component {
+
+  //const [isLoading, setIsLoading] = useState(True);
   constructor(props) {
     super(props);
 

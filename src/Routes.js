@@ -16,58 +16,58 @@ import AppliedRoute from "./components/AppliedRoute";
 import AuthenticatedRoute from "./components/AuthenticatedRoute";
 import UnauthenticatedRoute from "./components/UnauthenticatedRoute";
 
-export default ({ childProps }) => (
+export default ({ appProps }) => (
   <Switch>
-    <AppliedRoute path="/" exact component={Home} props={childProps} />
+    <AppliedRoute path="/" exact component={Home} appProps={appProps} />
 
     <UnauthenticatedRoute
       path="/login"
       exact
       component={Login}
-      props={childProps}
+      appProps={appProps}
     />
     <UnauthenticatedRoute
       path="/signup"
       exact
       component={Signup}
-      props={childProps}
+      appProps={appProps}
     />
     <UnauthenticatedRoute
       path="/login/reset"
       exact
       component={ResetPassword}
-      props={childProps}
+      appProps={appProps}
     />
 
     <AuthenticatedRoute
       path="/settings"
       exact
       component={Settings}
-      props={childProps}
+      appProps={appProps}
     />
     <AuthenticatedRoute
       path="/settings/email"
       exact
       component={ChangeEmail}
-      props={childProps}
+      appProps={appProps}
     />
     <AuthenticatedRoute
       path="/settings/password"
       exact
       component={ChangePassword}
-      props={childProps}
+      appProps={appProps}
     />
     <AuthenticatedRoute
       path="/notes/new"
       exact
       component={NewNote}
-      props={childProps}
+      appProps={appProps}
     />
     <AuthenticatedRoute
       path="/notes/:id"
       exact
       component={Notes}
-      props={childProps}
+      appProps={appProps}
     />
 
     {/* Finally, catch all unmatched routes */}
