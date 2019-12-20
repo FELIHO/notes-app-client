@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Button, FormGroup, FormControl, ControlLabel } from "react-bootstrap";
+import { FormGroup, FormControl, ControlLabel } from "react-bootstrap";
+import LoaderButton from "../components/LoaderButton";
 import { Auth } from "aws-amplify";
+import { Link } from "react-router-dom";
 import "./Signin.css";
 
 export default function Signin(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function validateForm() {
     return email.length > 0 && password.length > 0;
@@ -13,15 +16,17 @@ export default function Signin(props) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    setIsLoading(true);
 
     try {
       await Auth.signIn(email, password);
       props.setIsAuthenticated(true);
+      props.history.push("/");
     } catch (e) {
       console.log(e.message);
+      setIsLoading(false);
     }
   }
-
   return (
     <div className="Signin">
       <form onSubmit={handleSubmit}>
@@ -42,9 +47,10 @@ export default function Signin(props) {
             type="password"
           />
         </FormGroup>
-        <Button block variant="dark" disabled={!validateForm()} type="submit">
-          Sign in
-        </Button>
+        <Link to="/login/reset">Forgot password?</Link>
+        <LoaderButton block type="submit" bsSize="large" isLoading={isLoading} disabled={!validateForm()}>
+          Log in
+        </LoaderButton>
       </form>
     </div>
   );
