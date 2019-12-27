@@ -49,6 +49,10 @@ export default function Notes(props) {
   }
 
   async function deleteNote() {
+    // Delete attachement if the attachment exists.
+    if (attachmentURL !== "") {
+      Storage.vault.remove(attachmentURL);
+    }
     return API.del("notes", `/notes/${props.match.params.id}`);
   }
 
