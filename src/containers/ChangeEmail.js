@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { Auth } from "aws-amplify";
 import {
   HelpBlock,
@@ -9,74 +9,69 @@ import {
 import LoaderButton from "../components/LoaderButton";
 import "./ChangeEmail.css";
 
-export default class ChangeEmail extends Component {
-  constructor(props) {
-    super(props);
+export default function ChangeEmail(props) {
+  const [code, setCode] = useState("");
+  const [email, setEmail] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
 
-    this.state = {
-      code: "",
-      email: "",
-      codeSent: false,
-      isConfirming: false,
-      isSendingCode: false
-    };
+  function validatEmailForm() {
+    return email.length > 0;
   }
 
-  validatEmailForm() {
-    return this.state.email.length > 0;
+  function validateConfirmForm() {
+    return code.length > 0;
   }
 
-  validateConfirmForm() {
-    return this.state.code.length > 0;
-  }
-
-  handleChange = event => {
+  /*async function handleChange(event) {
     this.setState({
       [event.target.id]: event.target.value
     });
-  };
+  };*/
 
-  handleUpdateClick = async event => {
+  async function handleUpdateClick(event) {
     event.preventDefault();
 
-    this.setState({ isSendingCode: true });
+    setIsSendingCode(true);
 
     try {
       const user = await Auth.currentAuthenticatedUser();
-      await Auth.updateUserAttributes(user, { email: this.state.email });
+      await Auth.updateUserAttributes(user, { email: email });
 
-      this.setState({ codeSent: true });
+      setCodeSent(true);
+
     } catch (e) {
       alert(e.message);
-      this.setState({ isSendingCode: false });
+      setIsSendingCode(false);
     }
   };
 
-  handleConfirmClick = async event => {
+  async function handleConfirmClick(event) {
     event.preventDefault();
 
-    this.setState({ isConfirming: true });
+    setIsConfirming(true);
 
     try {
-      await Auth.verifyCurrentUserAttributeSubmit("email", this.state.code);
+      await Auth.verifyCurrentUserAttributeSubmit("email", code);
 
-      this.props.history.push("/settings");
+      props.history.push("/settings");
     } catch (e) {
       alert(e.message);
-      this.setState({ isConfirming: false });
+      setIsConfirming(false);
     }
   };
 
-  renderUpdateForm() {
+  function renderUpdateForm() {
     return (
-      <form onSubmit={this.handleUpdateClick}>
+      <form onSubmit={handleUpdateClick}>
         <FormGroup bsSize="large" controlId="email">
           <ControlLabel>Email</ControlLabel>
           <FormControl
             autoFocus
             type="email"
-            value={this.state.email}
-            onChange={this.handleChange}
+            value={email}
+            onChange={e => setEmail(e.target.value)}
           />
         </FormGroup>
         <LoaderButton
@@ -85,26 +80,26 @@ export default class ChangeEmail extends Component {
           bsSize="large"
           text="Update Email"
           loadingText="Updating…"
-          disabled={!this.validatEmailForm()}
-          isLoading={this.state.isSendingCode}
+          disabled={!validatEmailForm()}
+          isLoading={isSendingCode}
         />
       </form>
     );
   }
 
-  renderConfirmationForm() {
+  function renderConfirmationForm() {
     return (
-      <form onSubmit={this.handleConfirmClick}>
+      <form onSubmit={handleConfirmClick}>
         <FormGroup bsSize="large" controlId="code">
           <ControlLabel>Confirmation Code</ControlLabel>
           <FormControl
             autoFocus
             type="tel"
-            value={this.state.code}
-            onChange={this.handleChange}
+            value={code}
+            onChange={e => setCode(e.target.value)}
           />
           <HelpBlock>
-            Please check your email ({this.state.email}) for the confirmation
+            Please check your email ({email}) for the confirmation
             code.
           </HelpBlock>
         </FormGroup>
@@ -114,20 +109,19 @@ export default class ChangeEmail extends Component {
           bsSize="large"
           text="Confirm"
           loadingText="Confirm…"
-          isLoading={this.state.isConfirming}
-          disabled={!this.validateConfirmForm()}
+          isLoading={isConfirming}
+          disabled={!validateConfirmForm()}
         />
       </form>
     );
   }
 
-  render() {
     return (
       <div className="ChangeEmail">
-        {!this.state.codeSent
-          ? this.renderUpdateForm()
-          : this.renderConfirmationForm()}
+        {!codeSent
+          ? renderUpdateForm()
+          : renderConfirmationForm()}
       </div>
     );
-  }
+
 }

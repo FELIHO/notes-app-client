@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { API, Storage } from "aws-amplify";
 import { FormGroup, FormControl, ControlLabel } from "react-bootstrap";
 import LoaderButton from "../components/LoaderButton";
@@ -6,102 +6,89 @@ import { s3Upload } from "../libs/awsLib";
 import config from "../config";
 import "./Notes.css";
 
-export default class Notes extends Component {
-  constructor(props) {
-    super(props);
+export default function Notes(props) {
 
-    this.file = null;
+  const [file, setFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(null);
+  const [note, setNote] = useState(null);
+  const [content, setContent] = useState("");
+  const [attachmentURL, setAttachmentURL] = useState(null);
 
-    this.state = {
-      isLoading: null,
-      isDeleting: null,
-      note: null,
-      content: "",
-      attachmentURL: null
-    };
-  }
+  useEffect(() => {
+    onLoad();
+  }, []);
 
-  async componentDidMount() {
+  async function onLoad() {
     try {
       let attachmentURL;
-      const note = await this.getNote();
+      const note = await getNote();
       const { content, attachment } = note;
 
       if (attachment) {
         attachmentURL = await Storage.vault.get(attachment);
       }
 
-      this.setState({
-        note,
-        content,
-        attachmentURL
-      });
+      setNote(note);
+      setContent(content);
+      setAttachmentURL(attachmentURL);
+
     } catch (e) {
       alert(e);
     }
   }
 
-  getNote() {
-    return API.get("notes", `/notes/${this.props.match.params.id}`);
+  async function getNote() {
+    return API.get("notes", `/notes/${props.match.params.id}`);
   }
 
-  saveNote(note) {
-    return API.put("notes", `/notes/${this.props.match.params.id}`, {
+  async function saveNote(note) {
+    return API.put("notes", `/notes/${props.match.params.id}`, {
       body: note
     });
   }
 
-  deleteNote() {
-    return API.del("notes", `/notes/${this.props.match.params.id}`);
+  async function deleteNote() {
+    return API.del("notes", `/notes/${props.match.params.id}`);
   }
 
-  validateForm() {
-    return this.state.content.length > 0;
+  function validateForm() {
+    return content.length > 0;
   }
 
-  formatFilename(str) {
+  function formatFilename(str) {
     return str.replace(/^\w+-/, "");
   }
 
-  handleChange = event => {
-    this.setState({
-      [event.target.id]: event.target.value
-    });
-  }
-
-  handleFileChange = event => {
-    this.file = event.target.files[0];
-  }
-
-  handleSubmit = async event => {
+  async function handleSubmit(event) {
     let attachment;
 
     event.preventDefault();
 
-    if (this.file && this.file.size > config.MAX_ATTACHMENT_SIZE) {
+    if (file && file.size > config.MAX_ATTACHMENT_SIZE) {
       alert(`Please pick a file smaller than ${config.MAX_ATTACHMENT_SIZE/1000000} MB.`);
       return;
     }
 
-    this.setState({ isLoading: true });
+    setIsLoading(true);
 
     try {
-      if (this.file) {
-        attachment = await s3Upload(this.file);
+      if (file) {
+        attachment = await s3Upload(file);
       }
 
-      await this.saveNote({
-        content: this.state.content,
-        attachment: attachment || this.state.note.attachment
+      await saveNote({
+        content: content,
+        attachment: attachment || note.attachment
       });
-      this.props.history.push("/");
+      props.history.push("/");
     } catch (e) {
       alert(e);
-      this.setState({ isLoading: false });
+      setIsLoading(false);
     }
   }
 
-  handleDelete = async event => {
+  async function handleDelete(event) {
     event.preventDefault();
 
     const confirmed = window.confirm(
@@ -112,68 +99,67 @@ export default class Notes extends Component {
       return;
     }
 
-    this.setState({ isDeleting: true });
+    setIsDeleting(true);
 
     try {
-      await this.deleteNote();
-      this.props.history.push("/");
+      await deleteNote();
+      props.history.push("/");
     } catch (e) {
       alert(e);
-      this.setState({ isDeleting: false });
+      setIsDeleting(false);
     }
   }
 
-  render() {
-    return (
-      <div className="Notes">
-        {this.state.note &&
-          <form onSubmit={this.handleSubmit}>
-            <FormGroup controlId="content">
-              <FormControl
-                onChange={this.handleChange}
-                value={this.state.content}
-                componentClass="textarea"
-              />
-            </FormGroup>
-            {this.state.note.attachment &&
-              <FormGroup>
-                <ControlLabel>Attachment</ControlLabel>
-                <FormControl.Static>
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={this.state.attachmentURL}
-                  >
-                    {this.formatFilename(this.state.note.attachment)}
-                  </a>
-                </FormControl.Static>
-              </FormGroup>}
-            <FormGroup controlId="file">
-              {!this.state.note.attachment &&
-                <ControlLabel>Attachment</ControlLabel>}
-              <FormControl onChange={this.handleFileChange} type="file" />
-            </FormGroup>
-            <LoaderButton
-              block
-              bsStyle="primary"
-              bsSize="large"
-              disabled={!this.validateForm()}
-              type="submit"
-              isLoading={this.state.isLoading}
-              text="Save"
-              loadingText="Saving…"
+  return (
+    <div className="Notes">
+      {note &&
+        <form onSubmit={handleSubmit}>
+          <FormGroup controlId="content">
+            <FormControl
+              onChange={e => setContent(e.content)}
+              value={content}
+              componentClass="textarea"
             />
-            <LoaderButton
-              block
-              bsStyle="danger"
-              bsSize="large"
-              isLoading={this.state.isDeleting}
-              onClick={this.handleDelete}
-              text="Delete"
-              loadingText="Deleting…"
-            />
-          </form>}
-      </div>
-    );
-  }
+          </FormGroup>
+          {note.attachment &&
+            <FormGroup>
+              <ControlLabel>Attachment</ControlLabel>
+              <FormControl.Static>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={attachmentURL}
+                >
+                  {formatFilename(note.attachment)}
+                </a>
+              </FormControl.Static>
+            </FormGroup>}
+          <FormGroup controlId="file">
+            {!note.attachment &&
+              <ControlLabel>Attachment</ControlLabel>}
+            <FormControl onChange={e => setFile(e.target.files[0])} type="file" />
+          </FormGroup>
+          <LoaderButton
+            block
+            bsStyle="primary"
+            bsSize="large"
+            disabled={!validateForm()}
+            type="submit"
+            isLoading={isLoading}
+            text="Save"
+            loadingText="Saving…"
+          />
+          <LoaderButton
+            block
+            bsStyle="danger"
+            bsSize="large"
+            isLoading={isDeleting}
+            onClick={handleDelete}
+            text="Delete"
+            loadingText="Deleting…"
+          />
+        </form>}
+    </div>
+  );
+
 }

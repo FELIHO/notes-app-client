@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { Auth } from "aws-amplify";
 import { Link } from "react-router-dom";
 import {
@@ -11,82 +11,70 @@ import {
 import LoaderButton from "../components/LoaderButton";
 import "./ResetPassword.css";
 
-export default class ResetPassword extends Component {
-  constructor(props) {
-    super(props);
+export default function ResetPassword(props) {
 
-    this.state = {
-      code: "",
-      email: "",
-      password: "",
-      codeSent: false,
-      confirmed: false,
-      confirmPassword: "",
-      isConfirming: false,
-      isSendingCode: false
-    };
+  const [code, setCode] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+
+  function validateCodeForm() {
+    return email.length > 0;
   }
 
-  validateCodeForm() {
-    return this.state.email.length > 0;
-  }
-
-  validateResetForm() {
+  function validateResetForm() {
     return (
-      this.state.code.length > 0 &&
-      this.state.password.length > 0 &&
-      this.state.password === this.state.confirmPassword
+      code.length > 0 &&
+      password.length > 0 &&
+      password === confirmPassword
     );
   }
 
-  handleChange = event => {
-    this.setState({
-      [event.target.id]: event.target.value
-    });
-  };
-
-  handleSendCodeClick = async event => {
+  async function handleSendCodeClick(event) {
     event.preventDefault();
 
-    this.setState({ isSendingCode: true });
+    setIsSendingCode(true);
 
     try {
-      await Auth.forgotPassword(this.state.email);
-      this.setState({ codeSent: true });
+      await Auth.forgotPassword(email);
+      setCodeSent(true);
     } catch (e) {
       alert(e.message);
-      this.setState({ isSendingCode: false });
+      setIsSendingCode(false);
     }
   };
 
-  handleConfirmClick = async event => {
+  async function handleConfirmClick(event) {
     event.preventDefault();
-
-    this.setState({ isConfirming: true });
+    setIsConfirming(true);
 
     try {
       await Auth.forgotPasswordSubmit(
-        this.state.email,
-        this.state.code,
-        this.state.password
+        email,
+        code,
+        password
       );
-      this.setState({ confirmed: true });
+      setConfirmed(true);
     } catch (e) {
       alert(e.message);
-      this.setState({ isConfirming: false });
+      setIsConfirming(false);
     }
   };
 
-  renderRequestCodeForm() {
+  function renderRequestCodeForm() {
     return (
-      <form onSubmit={this.handleSendCodeClick}>
+      <form onSubmit={handleSendCodeClick}>
         <FormGroup bsSize="large" controlId="email">
           <ControlLabel>Email</ControlLabel>
           <FormControl
             autoFocus
             type="email"
-            value={this.state.email}
-            onChange={this.handleChange}
+            value={email}
+            onChange={e => setEmail(e.target.value)}
           />
         </FormGroup>
         <LoaderButton
@@ -95,26 +83,26 @@ export default class ResetPassword extends Component {
           bsSize="large"
           loadingText="Sending…"
           text="Send Confirmation"
-          isLoading={this.state.isSendingCode}
-          disabled={!this.validateCodeForm()}
+          isLoading={isSendingCode}
+          disabled={!validateCodeForm()}
         />
       </form>
     );
   }
 
-  renderConfirmationForm() {
+  function renderConfirmationForm() {
     return (
-      <form onSubmit={this.handleConfirmClick}>
+      <form onSubmit={handleConfirmClick}>
         <FormGroup bsSize="large" controlId="code">
           <ControlLabel>Confirmation Code</ControlLabel>
           <FormControl
             autoFocus
             type="tel"
-            value={this.state.code}
-            onChange={this.handleChange}
+            value={code}
+            onChange={e => setCode(e.target.value)}
           />
           <HelpBlock>
-            Please check your email ({this.state.email}) for the confirmation
+            Please check your email ({email}) for the confirmation
             code.
           </HelpBlock>
         </FormGroup>
@@ -123,16 +111,16 @@ export default class ResetPassword extends Component {
           <ControlLabel>New Password</ControlLabel>
           <FormControl
             type="password"
-            value={this.state.password}
-            onChange={this.handleChange}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
           />
         </FormGroup>
         <FormGroup bsSize="large" controlId="confirmPassword">
           <ControlLabel>Confirm Password</ControlLabel>
           <FormControl
             type="password"
-            onChange={this.handleChange}
-            value={this.state.confirmPassword}
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
           />
         </FormGroup>
         <LoaderButton
@@ -141,14 +129,14 @@ export default class ResetPassword extends Component {
           bsSize="large"
           text="Confirm"
           loadingText="Confirm…"
-          isLoading={this.state.isConfirming}
-          disabled={!this.validateResetForm()}
+          isLoading={isConfirming}
+          disabled={!validateResetForm()}
         />
       </form>
     );
   }
 
-  renderSuccessMessage() {
+  function renderSuccessMessage() {
     return (
       <div className="success">
         <Glyphicon glyph="ok" />
@@ -162,15 +150,13 @@ export default class ResetPassword extends Component {
     );
   }
 
-  render() {
-    return (
-      <div className="ResetPassword">
-        {!this.state.codeSent
-          ? this.renderRequestCodeForm()
-          : !this.state.confirmed
-            ? this.renderConfirmationForm()
-            : this.renderSuccessMessage()}
-      </div>
-    );
-  }
+  return (
+    <div className="ResetPassword">
+      {!codeSent
+        ? renderRequestCodeForm()
+        : !confirmed
+          ? renderConfirmationForm()
+          : renderSuccessMessage()}
+    </div>
+  );
 }

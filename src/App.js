@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import { Auth } from "aws-amplify";
 import { Link, withRouter } from "react-router-dom";
 import { Nav, Navbar, NavItem } from "react-bootstrap";
@@ -6,20 +6,19 @@ import { LinkContainer } from "react-router-bootstrap";
 import Routes from "./Routes";
 import "./App.css";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
+function App(props) {
+  
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
 
-    this.state = {
-      isAuthenticated: false,
-      isAuthenticating: true
-    };
-  }
+  useEffect(() => {
+    onLoad();
+  }, []);
 
-  async componentDidMount() {
+  async function onLoad() {
     try {
       if (await Auth.currentSession()) {
-        this.userHasAuthenticated(true);
+        setIsAuthenticated(true);
       }
     }
     catch(e) {
@@ -28,62 +27,51 @@ class App extends Component {
       }
     }
 
-    this.setState({ isAuthenticating: false });
+    setIsAuthenticating(false);
   }
 
-  userHasAuthenticated = authenticated => {
-    this.setState({ isAuthenticated: authenticated });
-  }
-
-  handleLogout = async event => {
+  async function handleLogout(event) {
     await Auth.signOut();
 
-    this.userHasAuthenticated(false);
+    setIsAuthenticated(false);
 
-    this.props.history.push("/login");
+    props.history.push("/login");
   }
 
-  render() {
-    const childProps = {
-      isAuthenticated: this.state.isAuthenticated,
-      userHasAuthenticated: this.userHasAuthenticated
-    };
-
-    return (
-      !this.state.isAuthenticating &&
-      <div className="App container">
-        <Navbar fluid collapseOnSelect>
-          <Navbar.Header>
-            <Navbar.Brand>
-              <Link to="/">Scratch</Link>
-            </Navbar.Brand>
-            <Navbar.Toggle />
-          </Navbar.Header>
-          <Navbar.Collapse>
-            <Nav pullRight>
-              {this.state.isAuthenticated
-                ? <Fragment>
-                    <LinkContainer to="/settings">
-                      <NavItem>Settings</NavItem>
-                    </LinkContainer>
-                    <NavItem onClick={this.handleLogout}>Logout</NavItem>
-                  </Fragment>
-                : <Fragment>
-                    <LinkContainer to="/signup">
-                      <NavItem>Signup</NavItem>
-                    </LinkContainer>
-                    <LinkContainer to="/login">
-                      <NavItem>Login</NavItem>
-                    </LinkContainer>
-                  </Fragment>
-              }
-            </Nav>
-          </Navbar.Collapse>
-        </Navbar>
-        <Routes childProps={childProps} />
-      </div>
-    );
-  }
+  return (
+    !isAuthenticating &&
+    <div className="App container">
+      <Navbar fluid collapseOnSelect>
+        <Navbar.Header>
+          <Navbar.Brand>
+            <Link to="/">Scratch</Link>
+          </Navbar.Brand>
+          <Navbar.Toggle />
+        </Navbar.Header>
+        <Navbar.Collapse>
+          <Nav pullRight>
+            {isAuthenticated
+              ? <Fragment>
+                  <LinkContainer to="/settings">
+                    <NavItem>Settings</NavItem>
+                  </LinkContainer>
+                  <NavItem onClick={handleLogout}>Logout</NavItem>
+                </Fragment>
+              : <Fragment>
+                  <LinkContainer to="/signup">
+                    <NavItem>Signup</NavItem>
+                  </LinkContainer>
+                  <LinkContainer to="/login">
+                    <NavItem>Login</NavItem>
+                  </LinkContainer>
+                </Fragment>
+            }
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
+      <Routes appProps={{ isAuthenticated, setIsAuthenticated }} />
+    </div>
+  );
 }
 
 export default withRouter(App);
