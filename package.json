@@ -18,6 +18,9 @@
     "start": "set PORT=3000 && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
+    "predeploy": "npm run build",
+    "deploy": "aws s3 sync build/ s3://notes-app-client.lionel-feliho-dev --delete",
+    "postdeploy": "aws cloudfront create-invalidation --distribution-id EUUJQ3302TO26 --paths /* && aws cloudfront create-invalidation --distribution-id E5V02B84BUXZI --paths /*",
     "eject": "react-scripts eject"
   }
 }
