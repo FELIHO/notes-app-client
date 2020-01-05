@@ -62,7 +62,7 @@ export default function Settings(props) {
           </FormGroup>
 
           <FormGroup>
-            <StripeProvider apiKey={config.stripe.STRIPE_KEY}>
+            <StripeProvider apiKey={config.STRIPE_KEY}>
               <Elements>
                 <BillingForm
                   isLoading={isLoading}
