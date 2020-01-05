@@ -19,7 +19,7 @@ export default function NewNote(props) {
   }
 
   function validateForm() {
-    return content.length > 0;
+    return content && content.length > 0;
   }
 
   async function handleSubmit(event) {
