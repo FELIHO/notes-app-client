@@ -57,7 +57,7 @@ export default function Notes(props) {
   }
 
   function validateForm() {
-    return content.length > 0;
+    return content && content.length > 0;
   }
 
   function formatFilename(str) {
